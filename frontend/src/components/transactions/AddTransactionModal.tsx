@@ -462,7 +462,15 @@ export function AddTransactionModal({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label className="text-xs">Source Section (From)</Label>
-                  <Select value={selectedSourceMethod} onValueChange={(val) => setValue("sourceMethod", val)}>
+                  <Select
+                    value={selectedSourceMethod}
+                    onValueChange={(val) => {
+                      setValue("sourceMethod", val)
+                      if (selectedDestinationMethod === val) {
+                        setValue("destinationMethod", "")
+                      }
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select source account" />
                     </SelectTrigger>
@@ -472,11 +480,13 @@ export function AddTransactionModal({
                           No payment methods — click + New Payment Method
                         </SelectItem>
                       ) : (
-                        paymentMethods.map((pm) => (
-                          <SelectItem key={`src-${pm._id || pm.name}`} value={pm.name}>
-                            {pm.name} {pm.initialAmount ? `(Initial: ₹${pm.initialAmount})` : ""}
-                          </SelectItem>
-                        ))
+                        paymentMethods
+                          .filter((pm) => pm.name !== selectedDestinationMethod)
+                          .map((pm) => (
+                            <SelectItem key={`src-${pm._id || pm.name}`} value={pm.name}>
+                              {pm.name}
+                            </SelectItem>
+                          ))
                       )}
                     </SelectContent>
                   </Select>
@@ -484,7 +494,15 @@ export function AddTransactionModal({
 
                 <div className="space-y-2">
                   <Label className="text-xs">Destination Section (To)</Label>
-                  <Select value={selectedDestinationMethod} onValueChange={(val) => setValue("destinationMethod", val)}>
+                  <Select
+                    value={selectedDestinationMethod}
+                    onValueChange={(val) => {
+                      setValue("destinationMethod", val)
+                      if (selectedSourceMethod === val) {
+                        setValue("sourceMethod", "")
+                      }
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select destination account" />
                     </SelectTrigger>
@@ -494,11 +512,13 @@ export function AddTransactionModal({
                           No payment methods — click + New Payment Method
                         </SelectItem>
                       ) : (
-                        paymentMethods.map((pm) => (
-                          <SelectItem key={`dst-${pm._id || pm.name}`} value={pm.name}>
-                            {pm.name} {pm.initialAmount ? `(Initial: ₹${pm.initialAmount})` : ""}
-                          </SelectItem>
-                        ))
+                        paymentMethods
+                          .filter((pm) => pm.name !== selectedSourceMethod)
+                          .map((pm) => (
+                            <SelectItem key={`dst-${pm._id || pm.name}`} value={pm.name}>
+                              {pm.name}
+                            </SelectItem>
+                          ))
                       )}
                     </SelectContent>
                   </Select>
