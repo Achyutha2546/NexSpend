@@ -24,18 +24,36 @@ export class ContextBuilder {
 
     let totalIncome = 0
     let totalExpenses = 0
+    let currentMonthIncome = 0
+    let currentMonthExpenses = 0
     const categoryMap: { [key: string]: number } = {}
 
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
+
     transactions.forEach((tx) => {
-      if (tx.type === "income") totalIncome += tx.amount
-      else if (tx.type === "expense") {
+      const txDate = new Date(tx.date)
+      const isCurrentMonth = !isNaN(txDate.getTime()) && txDate.getFullYear() === currentYear && txDate.getMonth() === currentMonth
+
+      if (tx.type === "income") {
+        totalIncome += tx.amount
+        if (isCurrentMonth) currentMonthIncome += tx.amount
+      } else if (tx.type === "expense") {
         totalExpenses += tx.amount
-        categoryMap[tx.category] = (categoryMap[tx.category] || 0) + tx.amount
+        if (isCurrentMonth) {
+          currentMonthExpenses += tx.amount
+          categoryMap[tx.category] = (categoryMap[tx.category] || 0) + tx.amount
+        }
       }
     })
 
     const netSavings = Math.max(totalIncome - totalExpenses, 0)
-    const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0
+    // Savings rate evaluated against current month or overall if current month is empty
+    const evalIncome = currentMonthIncome > 0 ? currentMonthIncome : totalIncome
+    const evalExpenses = currentMonthIncome > 0 ? currentMonthExpenses : totalExpenses
+    const evalSavings = Math.max(evalIncome - evalExpenses, 0)
+    const savingsRate = evalIncome > 0 ? Math.round((evalSavings / evalIncome) * 100) : 0
 
     let totalAllocated = 0
     let totalSpent = 0
@@ -62,8 +80,8 @@ export class ContextBuilder {
 
     return {
       userId,
-      totalIncome,
-      totalExpenses,
+      totalIncome: evalIncome,
+      totalExpenses: evalExpenses,
       netSavings,
       savingsRate,
       budgetSummary: {
