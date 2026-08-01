@@ -61,7 +61,14 @@ export const getTransactions = async (req: Request, res: Response) => {
     const skip = (pageNum - 1) * limitNum
 
     const sortOptions: any = {}
-    sortOptions[sortBy as string] = sortOrder === "asc" ? 1 : -1
+    if (sortBy === "date") {
+      const order = sortOrder === "asc" ? 1 : -1
+      sortOptions.date = order
+      sortOptions.time = order
+      sortOptions.createdAt = order
+    } else {
+      sortOptions[sortBy as string] = sortOrder === "asc" ? 1 : -1
+    }
 
     let transactions: any[] = []
     let total = 0
@@ -421,7 +428,7 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     let transactions: any[] = []
     try {
-      transactions = await Transaction.find(activeQuery).sort({ date: -1 })
+      transactions = await Transaction.find(activeQuery).sort({ date: -1, time: -1, createdAt: -1 })
     } catch (dbErr) {
       console.warn("DB query fallback in getDashboardSummary")
     }
