@@ -43,16 +43,30 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     const spendingForecast = Math.round(expenses + dailyExpenseAvg * 10)
     const incomeForecast = Math.round(income * 1.05)
 
-    // Monthly cashflow trend
-    const monthlyMap: { [key: string]: { month: string; income: number; expense: number } } = {}
-    transactions.forEach((tx) => {
-      const monthKey = new Date(tx.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" })
-      if (!monthlyMap[monthKey]) monthlyMap[monthKey] = { month: monthKey, income: 0, expense: 0 }
+    // Sort transactions chronologically
+    const sortedTxs = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+    // Monthly cashflow trend grouped by year & month
+    const monthlyMap: { [key: string]: { month: string; rawDate: Date; income: number; expense: number } } = {}
+
+    sortedTxs.forEach((tx) => {
+      const txDate = new Date(tx.date)
+      if (isNaN(txDate.getTime())) return
+
+      const monthKey = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, "0")}`
+      const monthLabel = txDate.toLocaleDateString("en-US", { month: "short", year: "2-digit" })
+
+      if (!monthlyMap[monthKey]) {
+        monthlyMap[monthKey] = { month: monthLabel, rawDate: new Date(txDate.getFullYear(), txDate.getMonth(), 1), income: 0, expense: 0 }
+      }
+
       if (tx.type === "income") monthlyMap[monthKey].income += tx.amount
       else if (tx.type === "expense") monthlyMap[monthKey].expense += tx.amount
     })
 
     const cashFlowTrend = Object.values(monthlyMap)
+      .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+      .map(({ month, income, expense }) => ({ month, income, expense }))
 
     return res.status(200).json({
       success: true,

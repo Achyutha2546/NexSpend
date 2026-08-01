@@ -455,19 +455,32 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     const recentTransactions = transactions.slice(0, 10)
 
+    const today = new Date()
     const last7Days = Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
-      return d.toISOString().split("T")[0]
+      const d = new Date(today)
+      d.setDate(today.getDate() - (6 - i))
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, "0")
+      const day = String(d.getDate()).padStart(2, "0")
+      return `${year}-${month}-${day}`
     })
 
     const weeklyTrend = last7Days.map((dateStr) => {
       const dayAmount = transactions
-        .filter((tx) => tx.type === "expense" && new Date(tx.date).toISOString().split("T")[0] === dateStr)
+        .filter((tx) => {
+          if (tx.type !== "expense") return false
+          const txDate = new Date(tx.date)
+          const y = txDate.getFullYear()
+          const m = String(txDate.getMonth() + 1).padStart(2, "0")
+          const d = String(txDate.getDate()).padStart(2, "0")
+          return `${y}-${m}-${d}` === dateStr
+        })
         .reduce((sum, tx) => sum + tx.amount, 0)
 
-      const dayName = new Date(dateStr).toLocaleDateString("en-US", { weekday: "short" })
-      return { day: dayName, date: dateStr, amount: dayAmount }
+      const parts = dateStr.split("-")
+      const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+      const dayName = dateObj.toLocaleDateString("en-US", { weekday: "short" })
+      return { name: dayName, date: dateStr, amount: dayAmount }
     })
 
     const paymentMethods = await PaymentMethod.find({ userId })
