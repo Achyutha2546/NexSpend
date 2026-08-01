@@ -142,15 +142,17 @@ export const createTransaction = async (req: Request, res: Response) => {
     const txAmount = Math.abs(Number(amount || 0))
     const txType = type || "expense"
 
-    // Prevent negative balance: check if user has sufficient funds for expenses
-    if (txType === "expense") {
+    // Prevent negative balance: check if user has sufficient funds for expenses or transfers
+    if (txType === "expense" || txType === "transfer") {
       try {
+        const targetPMName = paymentMethod || req.body.sourceMethod
         const [allTransactions, userCategories, userPaymentMethods] = await Promise.all([
           Transaction.find({ userId, isDeleted: { $ne: true } }),
           Category.find({ userId }),
           PaymentMethod.find({ userId }),
         ])
 
+        // 1. Check Overall Account Balance
         let initialCategoryIncome = 0
         userCategories
           .filter((c: any) => c.type === "income")
@@ -185,16 +187,44 @@ export const createTransaction = async (req: Request, res: Response) => {
           .filter((t: any) => t.type === "expense")
           .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
 
-        const currentBalance = initialCategoryIncome + initialPMIncome + txIncome - totalExpenses
+        const totalBalance = initialCategoryIncome + initialPMIncome + txIncome - totalExpenses
 
-        if (txAmount > currentBalance) {
+        if (txAmount > totalBalance) {
           return res.status(400).json({
             success: false,
-            message: `Insufficient balance. Your current balance is ₹${currentBalance.toLocaleString("en-IN")}. You cannot add an expense of ₹${txAmount.toLocaleString("en-IN")}.`,
+            message: `Insufficient overall balance. Your total balance is ₹${totalBalance.toLocaleString("en-IN")}. You cannot spend ₹${txAmount.toLocaleString("en-IN")}.`,
           })
         }
+
+        // 2. Check Specific Payment Method / Account Balance
+        if (targetPMName) {
+          const pmObj = userPaymentMethods.find((p: any) => p.name === targetPMName)
+          let pmBalance = 0
+
+          allTransactions.forEach((tx: any) => {
+            if (tx.type === "income" && tx.paymentMethod === targetPMName) {
+              pmBalance += tx.amount || 0
+            } else if (tx.type === "expense" && tx.paymentMethod === targetPMName) {
+              pmBalance -= tx.amount || 0
+            } else if (tx.type === "transfer") {
+              if (tx.sourceMethod === targetPMName) pmBalance -= tx.amount || 0
+              if (tx.destinationMethod === targetPMName) pmBalance += tx.amount || 0
+            }
+          })
+
+          const hasPMInitialTx = allTransactions.some((t: any) => t.title === `${targetPMName} Initial Balance`)
+          if (!hasPMInitialTx && pmObj) {
+            pmBalance += pmObj.initialAmount || 0
+          }
+
+          if (txAmount > pmBalance) {
+            return res.status(400).json({
+              success: false,
+              message: `Insufficient balance in '${targetPMName}'. Account balance is ₹${pmBalance.toLocaleString("en-IN")}. You cannot spend ₹${txAmount.toLocaleString("en-IN")} from this payment method.`,
+            })
+          }
+        }
       } catch (dbErr) {
-        // If DB error occurs
         return res.status(400).json({
           success: false,
           message: "Cannot verify balance. Please try again when the database is available.",
