@@ -199,7 +199,10 @@ export function AddTransactionModal({
       let result: TransactionItem
       const payload: any = { ...data }
       if (data.type === "transfer") {
-        payload.paymentMethod = data.sourceMethod || data.paymentMethod
+        const src = data.sourceMethod || data.paymentMethod
+        payload.paymentMethod = src
+        payload.sourceMethod = src
+        payload.destinationMethod = data.destinationMethod || ""
       }
 
       if (isEditing && initialData) {
