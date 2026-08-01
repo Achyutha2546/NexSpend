@@ -18,53 +18,66 @@ export class FinancialHealthEngine {
       }
     }
 
-    // 1. Savings Rate Score (0 - 100): Target 20%+ monthly savings rate for 100 points
-    const savingsScore = Math.min(Math.round(context.savingsRate * 5), 100)
+    // 1. Savings Rate Score (0 - 100): Target 25%+ monthly savings rate for 100 points
+    const savingsScore = Math.min(Math.round(context.savingsRate * 4), 100)
     
     // 2. Balance Reserve Score (0 - 100): Evaluates current balance coverage relative to monthly expenses
-    let balanceReserveScore = 70
+    let balanceReserveScore = 50
     if (monthlyExpenses > 0) {
-      const monthsOfReserve = currentBalance / monthlyExpenses
-      balanceReserveScore = Math.min(Math.round(monthsOfReserve * 25), 100)
+      if (currentBalance <= 0) {
+        balanceReserveScore = 0
+      } else {
+        const monthsOfReserve = currentBalance / monthlyExpenses
+        // 6 months of expenses in reserve = 100 points
+        balanceReserveScore = Math.min(Math.round((monthsOfReserve / 6) * 100), 100)
+      }
     } else if (currentBalance > 0) {
-      balanceReserveScore = 100
+      balanceReserveScore = 90
     }
     balanceReserveScore = Math.max(balanceReserveScore, 0)
 
     // 3. Budget Adherence Score (0 - 100)
-    const budgetOverspendPenalty = context.budgetSummary.overspendingCategories.length * 20
-    const budgetScore = Math.max(100 - budgetOverspendPenalty, 20)
+    const budgetOverspendPenalty = context.budgetSummary.overspendingCategories.length * 25
+    const budgetScore = Math.max(100 - budgetOverspendPenalty, 10)
 
-    // 4. Cash Flow Liquidity Score (0 - 100): Income to Expense ratio
-    let cashFlowRatio = 1
-    if (monthlyExpenses > 0) {
-      cashFlowRatio = monthlyIncome / monthlyExpenses
-    } else if (monthlyIncome > 0) {
-      cashFlowRatio = 2.0
+    // 4. Cash Flow Liquidity Score (0 - 100): Net Income vs Expense ratio
+    let cashFlowScore = 50
+    if (monthlyIncome > 0) {
+      const expenseToIncomeRatio = monthlyExpenses / monthlyIncome
+      if (expenseToIncomeRatio >= 1.0) {
+        // Expenses exceed or equal income -> severe drop
+        cashFlowScore = Math.max(0, Math.round(100 - (expenseToIncomeRatio - 1.0) * 100 - (expenseToIncomeRatio * 50)))
+      } else {
+        // Healthy expense ratio below 100%
+        cashFlowScore = Math.round((1 - expenseToIncomeRatio) * 100)
+      }
+    } else if (monthlyExpenses > 0) {
+      // Expenses logged with 0 income
+      cashFlowScore = 10
     }
-    const cashFlowScore = Math.min(Math.round(cashFlowRatio * 50), 100)
 
     // 5. Financial Risk Score (0 - 100, high score = safer)
-    let riskScore = 85
-    if (monthlyExpenses > monthlyIncome) riskScore -= 35
-    if (currentBalance < 0) riskScore -= 40
+    let riskScore = 80
+    if (monthlyExpenses > monthlyIncome && monthlyIncome > 0) riskScore -= 40
+    if (monthlyIncome === 0 && monthlyExpenses > 0) riskScore -= 60
+    if (currentBalance < 0) riskScore -= 30
     if (context.budgetSummary.overspendingCategories.length > 0) riskScore -= 20
     riskScore = Math.max(riskScore, 0)
 
     // 6. Trend Score based on positive net cashflow and reserve growth
-    const trendScore = monthlyIncome >= monthlyExpenses && currentBalance >= 0 ? 90 : 40
+    const trendScore = monthlyIncome > monthlyExpenses && currentBalance >= 0 ? 90 : 25
 
     // Weighted Overall Financial Health Score Formula:
-    // 30% Savings Rate + 25% Balance Reserve Coverage + 25% Cash Flow Liquidity + 20% Budget Adherence
+    // 35% Cash Flow & Expense Ratio + 30% Savings Rate + 20% Balance Reserve Coverage + 15% Budget Adherence
     const overallHealthScore = Math.min(
       100,
       Math.max(
         0,
         Math.round(
+          cashFlowScore * 0.35 +
           savingsScore * 0.30 +
-          balanceReserveScore * 0.25 +
-          cashFlowScore * 0.25 +
-          budgetScore * 0.20
+          balanceReserveScore * 0.20 +
+          budgetScore * 0.15
         )
       )
     )

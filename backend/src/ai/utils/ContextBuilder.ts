@@ -51,11 +51,11 @@ export class ContextBuilder {
     const netSavings = Math.max(totalIncome - totalExpenses, 0)
     const currentBalance = totalIncome - totalExpenses
     
-    // Evaluate monthly vs overall income and expenses
-    const evalIncome = currentMonthIncome > 0 ? currentMonthIncome : totalIncome
-    const evalExpenses = currentMonthExpenses > 0 ? currentMonthExpenses : totalExpenses
+    // Evaluate monthly income and expenses
+    const evalIncome = currentMonthIncome
+    const evalExpenses = currentMonthExpenses
     const evalSavings = Math.max(evalIncome - evalExpenses, 0)
-    const savingsRate = evalIncome > 0 ? Math.round((evalSavings / evalIncome) * 100) : 0
+    const savingsRate = evalIncome > 0 ? Math.round((evalSavings / evalIncome) * 100) : (totalIncome > 0 ? Math.round((Math.max(totalIncome - totalExpenses, 0) / totalIncome) * 100) : 0)
 
     let totalAllocated = 0
     let totalSpent = 0
