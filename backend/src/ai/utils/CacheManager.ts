@@ -16,6 +16,10 @@ export class CacheManager {
     this.cache.set(key, { value, expiry })
   }
 
+  static delete(key: string): void {
+    this.cache.delete(key)
+  }
+
   static clear(): void {
     this.cache.clear()
   }

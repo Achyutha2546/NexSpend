@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { Transaction } from "../models/Transaction"
 import { Budget } from "../models/Budget"
 import { RecurringTransaction } from "../models/RecurringTransaction"
+import { Habit } from "../models/Habit"
 
 export const getAnalyticsSummary = async (req: Request, res: Response) => {
   try {
