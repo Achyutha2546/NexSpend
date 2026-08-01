@@ -88,8 +88,47 @@ export function AddTransactionModal({
   useEffect(() => {
     if (open) {
       loadData()
+      if (initialData) {
+        reset({
+          title: initialData.title,
+          amount: initialData.amount,
+          type: initialData.type,
+          category: initialData.category,
+          paymentMethod: initialData.paymentMethod,
+          sourceMethod: initialData.sourceMethod || initialData.paymentMethod || "",
+          destinationMethod: initialData.destinationMethod || "",
+          merchant: initialData.merchant || "",
+          notes: initialData.notes || "",
+          date: new Date(initialData.date).toISOString().split("T")[0],
+          time: initialData.time || "12:00",
+          recurring: initialData.recurring || false,
+          recurringFrequency: initialData.recurringFrequency || "monthly",
+        })
+      } else {
+        const today = new Date()
+        const year = today.getFullYear()
+        const month = String(today.getMonth() + 1).padStart(2, "0")
+        const day = String(today.getDate()).padStart(2, "0")
+        const dateStr = `${year}-${month}-${day}`
+
+        reset({
+          title: "",
+          amount: 0,
+          type: defaultType,
+          category: defaultType === "income" ? "Income" : defaultType === "transfer" ? "Transfer" : "Food",
+          paymentMethod: paymentMethods[0]?.name || "Cash",
+          sourceMethod: paymentMethods[0]?.name || "Cash",
+          destinationMethod: paymentMethods[1]?.name || paymentMethods[0]?.name || "",
+          merchant: "",
+          notes: "",
+          date: dateStr,
+          time: new Date().toTimeString().split(" ")[0].slice(0, 5),
+          recurring: false,
+          recurringFrequency: "monthly",
+        })
+      }
     }
-  }, [open])
+  }, [open, defaultType, initialData])
 
   const {
     register,
@@ -198,8 +237,13 @@ export function AddTransactionModal({
     try {
       let result: TransactionItem
       const payload: any = { ...data }
-      if (data.type === "transfer") {
-        const src = data.sourceMethod || data.paymentMethod
+
+      if (data.type === "income") {
+        payload.category = data.category || "Income"
+        payload.paymentMethod = data.paymentMethod || "Bank Account"
+      } else if (data.type === "transfer") {
+        const src = data.sourceMethod || data.paymentMethod || "Bank Account"
+        payload.category = "Transfer"
         payload.paymentMethod = src
         payload.sourceMethod = src
         payload.destinationMethod = data.destinationMethod || ""
@@ -297,7 +341,18 @@ export function AddTransactionModal({
             {selectedType === "income" ? (
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Input value="Income" disabled />
+                <Select value={selectedCategory || "Income"} onValueChange={(val) => setValue("category", val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select income source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Salary", "Freelance", "Investment", "Business", "Gift", "Other Income", "Income"].map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             ) : selectedType === "expense" ? (
               <div className="space-y-2">
