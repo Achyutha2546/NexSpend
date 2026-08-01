@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { settingsService, UserPreferencesData, NotificationPreferencesData, UserSessionItem } from "@/services/settingsService"
 import { transactionService } from "@/services/transactionService"
+import { categoryDetectionService } from "@/services/categoryDetectionService"
 import { SyncStatusWidget } from "@/components/pwa/SyncStatusWidget"
 import { useAuth } from "@/context/AuthContext"
 import { PageLoader } from "@/components/feedback/PageLoader"
@@ -451,10 +452,47 @@ export function SettingsPage() {
             <CardContent className="space-y-6 max-w-md">
               <div className="flex items-center justify-between p-3 rounded-lg border">
                 <div>
-                  <p className="font-semibold text-sm">Enable AI Financial Advisory</p>
-                  <p className="text-xs text-muted-foreground">Receive automated recommendations and cash flow forecasts.</p>
+                  <p className="font-semibold text-sm">Smart Category Auto-Detection</p>
+                  <p className="text-xs text-muted-foreground">Automatically suggest categories as you type transaction titles.</p>
                 </div>
                 <Switch defaultChecked />
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await categoryDetectionService.clearMappings()
+                      toast.success("Learned merchant mappings cleared!")
+                    } catch {
+                      toast.error("Failed to clear mappings.")
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear Learned Merchant Mappings
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      const mappings = await categoryDetectionService.getMappings()
+                      const blob = new Blob([JSON.stringify(mappings, null, 2)], { type: "application/json" })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement("a")
+                      a.href = url
+                      a.download = "nexspend-merchant-mappings.json"
+                      a.click()
+                      toast.success("Exported learned merchant mappings!")
+                    } catch {
+                      toast.error("Failed to export mappings.")
+                    }
+                  }}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Export Learned Mappings (.json)
+                </Button>
               </div>
 
               <div className="space-y-2">

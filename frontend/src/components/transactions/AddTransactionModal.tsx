@@ -19,8 +19,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CurrencyInput } from "@/components/forms/CurrencyInput"
 import { transactionService, TransactionItem } from "@/services/transactionService"
 import { paymentMethodService, PaymentMethodItem } from "@/services/paymentMethodService"
+import { categoryDetectionService } from "@/services/categoryDetectionService"
 import { toast } from "sonner"
-import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus } from "lucide-react"
+import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus, Sparkles } from "lucide-react"
 
 const transactionSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -138,6 +139,31 @@ export function AddTransactionModal({
   const selectedSourceMethod = watch("sourceMethod")
   const selectedDestinationMethod = watch("destinationMethod")
   const isRecurring = watch("recurring")
+  const titleInput = watch("title")
+  const merchantInput = watch("merchant")
+
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open || selectedType !== "expense") return
+    const query = (titleInput || merchantInput || "").trim()
+    if (query.length < 2) {
+      setSuggestedCategory(null)
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      const res = await categoryDetectionService.detectCategory(query, merchantInput, selectedType)
+      if (res?.category) {
+        setSuggestedCategory(res.category)
+        setValue("category", res.category)
+      } else {
+        setSuggestedCategory(null)
+      }
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [titleInput, merchantInput, open, selectedType, setValue])
 
   const handleCreatePaymentMethod = async () => {
     if (!newPMName.trim()) {
@@ -272,9 +298,25 @@ export function AddTransactionModal({
               </div>
             ) : selectedType === "expense" ? (
               <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={selectedCategory} onValueChange={(val) => setValue("category", val)}>
-                  <SelectTrigger>
+                <div className="flex items-center justify-between">
+                  <Label>Category</Label>
+                  {suggestedCategory && (
+                    <span className="text-[11px] font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                      <Sparkles className="h-3 w-3" /> ✨ Suggested: {suggestedCategory}
+                    </span>
+                  )}
+                </div>
+                <Select
+                  value={selectedCategory}
+                  onValueChange={(val) => {
+                    setValue("category", val)
+                    const titleVal = watch("title")
+                    if (titleVal && titleVal.length >= 2) {
+                      categoryDetectionService.saveMapping(titleVal, val)
+                    }
+                  }}
+                >
+                  <SelectTrigger className={suggestedCategory ? "border-amber-500/50 bg-amber-500/5" : ""}>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>

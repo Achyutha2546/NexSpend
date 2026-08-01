@@ -13,6 +13,13 @@ import {
 } from "../controllers/aiController"
 import { verifyAuth } from "../middleware/authMiddleware"
 
+import {
+  detectCategory,
+  saveMerchantMapping,
+  getMerchantMappings,
+  clearMerchantMappings,
+} from "../controllers/categoryDetectionController"
+
 const router = Router()
 
 router.use(verifyAuth)
@@ -30,5 +37,11 @@ router.get("/history", getAIConversations)
 router.delete("/history", deleteAIHistory)
 router.post("/weekly-review", generateWeeklyReview)
 router.post("/monthly-review", generateMonthlyReview)
+
+// Smart Category Auto-Detection routes
+router.post("/detect-category", detectCategory)
+router.post("/merchant-mapping", saveMerchantMapping)
+router.get("/merchant-mappings", getMerchantMappings)
+router.delete("/merchant-mappings", clearMerchantMappings)
 
 export default router
