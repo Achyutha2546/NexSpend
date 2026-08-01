@@ -49,9 +49,11 @@ export class ContextBuilder {
     })
 
     const netSavings = Math.max(totalIncome - totalExpenses, 0)
-    // Savings rate evaluated against current month or overall if current month is empty
+    const currentBalance = totalIncome - totalExpenses
+    
+    // Evaluate monthly vs overall income and expenses
     const evalIncome = currentMonthIncome > 0 ? currentMonthIncome : totalIncome
-    const evalExpenses = currentMonthIncome > 0 ? currentMonthExpenses : totalExpenses
+    const evalExpenses = currentMonthExpenses > 0 ? currentMonthExpenses : totalExpenses
     const evalSavings = Math.max(evalIncome - evalExpenses, 0)
     const savingsRate = evalIncome > 0 ? Math.round((evalSavings / evalIncome) * 100) : 0
 
@@ -80,8 +82,12 @@ export class ContextBuilder {
 
     return {
       userId,
+      totalBalance: currentBalance,
+      currentBalance,
       totalIncome: evalIncome,
       totalExpenses: evalExpenses,
+      allTimeIncome: totalIncome,
+      allTimeExpenses: totalExpenses,
       netSavings,
       savingsRate,
       budgetSummary: {

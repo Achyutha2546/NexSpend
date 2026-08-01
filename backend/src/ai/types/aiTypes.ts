@@ -36,8 +36,12 @@ export interface LLMResponse {
 
 export interface FinancialContext {
   userId: string
+  totalBalance?: number
+  currentBalance?: number
   totalIncome: number
   totalExpenses: number
+  allTimeIncome?: number
+  allTimeExpenses?: number
   netSavings: number
   savingsRate: number
   budgetSummary: {
