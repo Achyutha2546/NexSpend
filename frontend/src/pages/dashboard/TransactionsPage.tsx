@@ -259,7 +259,17 @@ export function TransactionsPage() {
                   title={tx.title}
                   merchant={tx.merchant || tx.category}
                   amount={tx.type === "income" ? tx.amount : -tx.amount}
-                  date={new Date(tx.date).toLocaleDateString()}
+                  date={(() => {
+                    const [y, m, d] = String(tx.date).split("T")[0].split("-")
+                    if (y && m && d) {
+                      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    }
+                    return new Date(tx.date).toLocaleDateString()
+                  })()}
                   type={tx.type === "income" ? "income" : "expense"}
                   category={tx.category}
                   status={tx.status}

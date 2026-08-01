@@ -88,7 +88,19 @@ export function TransactionDetailsModal({
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">Date</p>
-                <p className="font-medium">{new Date(transaction.date).toLocaleDateString()}</p>
+                <p className="font-medium">
+                  {(() => {
+                    const [y, m, d] = String(transaction.date).split("T")[0].split("-")
+                    if (y && m && d) {
+                      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    }
+                    return new Date(transaction.date).toLocaleDateString()
+                  })()}
+                </p>
               </div>
             </div>
 
