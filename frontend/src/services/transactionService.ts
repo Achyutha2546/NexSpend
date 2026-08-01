@@ -59,6 +59,8 @@ export interface DashboardSummaryData {
     type: string
     initialAmount: number
     balance: number
+    income: number
+    expense: number
   }>
   lastUpdated: string
 }

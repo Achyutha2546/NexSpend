@@ -424,12 +424,23 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     let totalIncome = 0
     let totalExpenses = 0
+    let monthlyIncome = 0
+    let monthlyExpenses = 0
+
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth()
 
     transactions.forEach((tx) => {
+      const txDate = new Date(tx.date)
+      const isCurrentMonth = !isNaN(txDate.getTime()) && txDate.getFullYear() === currentYear && txDate.getMonth() === currentMonth
+
       if (tx.type === "income") {
         totalIncome += tx.amount
+        if (isCurrentMonth) monthlyIncome += tx.amount
       } else if (tx.type === "expense") {
         totalExpenses += tx.amount
+        if (isCurrentMonth) monthlyExpenses += tx.amount
       }
     })
 
@@ -455,7 +466,6 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     const recentTransactions = transactions.slice(0, 10)
 
-    const today = new Date()
     const last7Days = Array.from({ length: 7 }).map((_, i) => {
       const d = new Date(today)
       d.setDate(today.getDate() - (6 - i))
@@ -490,11 +500,16 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       )
 
       let balance = 0
+      let pmIncome = 0
+      let pmExpense = 0
+
       pmTxs.forEach((tx) => {
         if (tx.type === "income" && tx.paymentMethod === pm.name) {
           balance += tx.amount
+          pmIncome += tx.amount
         } else if (tx.type === "expense" && tx.paymentMethod === pm.name) {
           balance -= tx.amount
+          pmExpense += tx.amount
         } else if (tx.type === "transfer") {
           if (tx.sourceMethod === pm.name) balance -= tx.amount
           if (tx.destinationMethod === pm.name) balance += tx.amount
@@ -505,6 +520,7 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       const hasInitialTx = pmTxs.some((tx) => tx.title === `${pm.name} Initial Balance`)
       if (!hasInitialTx) {
         balance += pm.initialAmount || 0
+        pmIncome += pm.initialAmount || 0
       }
 
       return {
@@ -513,6 +529,8 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
         type: pm.type,
         initialAmount: pm.initialAmount || 0,
         balance,
+        income: pmIncome,
+        expense: pmExpense,
       }
     })
 
@@ -522,6 +540,8 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
         totalBalance,
         totalIncome,
         totalExpenses,
+        monthlyIncome,
+        monthlyExpenses,
         totalSavings,
         netCashFlow,
         financialHealthScore,
