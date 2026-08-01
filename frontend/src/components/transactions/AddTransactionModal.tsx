@@ -18,7 +18,6 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CurrencyInput } from "@/components/forms/CurrencyInput"
 import { transactionService, TransactionItem } from "@/services/transactionService"
-import { categoryService, CategoryItem } from "@/services/categoryService"
 import { paymentMethodService, PaymentMethodItem } from "@/services/paymentMethodService"
 import { toast } from "sonner"
 import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus } from "lucide-react"
@@ -65,14 +64,7 @@ export function AddTransactionModal({
   initialData = null,
 }: AddTransactionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [customIncomeCategories, setCustomIncomeCategories] = useState<CategoryItem[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodItem[]>([])
-
-  // State for adding income source
-  const [showAddSource, setShowAddSource] = useState(false)
-  const [newSourceName, setNewSourceName] = useState("")
-  const [newSourceInitialAmount, setNewSourceInitialAmount] = useState<number | "">("")
-  const [isCreatingSource, setIsCreatingSource] = useState(false)
 
   // State for adding payment method
   const [showAddPaymentMethod, setShowAddPaymentMethod] = useState(false)
@@ -85,12 +77,7 @@ export function AddTransactionModal({
 
   const loadData = async () => {
     try {
-      const [cats, pms] = await Promise.all([
-        categoryService.getCategories(),
-        paymentMethodService.getPaymentMethods(),
-      ])
-      const incomeOnly = cats.filter((c) => c.type === "income")
-      setCustomIncomeCategories(incomeOnly)
+      const pms = await paymentMethodService.getPaymentMethods()
       setPaymentMethods(pms)
     } catch {
       // Fallback
@@ -151,36 +138,6 @@ export function AddTransactionModal({
   const selectedSourceMethod = watch("sourceMethod")
   const selectedDestinationMethod = watch("destinationMethod")
   const isRecurring = watch("recurring")
-
-  const handleCreateIncomeSource = async () => {
-    if (!newSourceName.trim()) {
-      toast.error("Source name is required")
-      return
-    }
-    setIsCreatingSource(true)
-    try {
-      const initialAmt = Number(newSourceInitialAmount) || 0
-      const createdCat = await categoryService.createCategory({
-        name: newSourceName.trim(),
-        type: "income",
-        initialAmount: initialAmt,
-      })
-
-      toast.success(`Income source '${createdCat.name}' created!`)
-      await loadData()
-      setValue("category", createdCat.name)
-      if (initialAmt > 0 && !watch("amount")) {
-        setValue("amount", initialAmt)
-      }
-      setNewSourceName("")
-      setNewSourceInitialAmount("")
-      setShowAddSource(false)
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create income source")
-    } finally {
-      setIsCreatingSource(false)
-    }
-  }
 
   const handleCreatePaymentMethod = async () => {
     if (!newPMName.trim()) {

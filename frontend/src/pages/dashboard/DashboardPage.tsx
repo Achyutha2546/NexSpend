@@ -12,6 +12,7 @@ import { transactionService, DashboardSummaryData, TransactionItem } from "@/ser
 import { AddTransactionModal } from "@/components/transactions/AddTransactionModal"
 import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal"
 import { toast } from "sonner"
+import { formatCurrency } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
