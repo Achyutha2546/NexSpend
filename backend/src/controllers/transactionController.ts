@@ -446,7 +446,7 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
         (tx) => tx.paymentMethod === pm.name || tx.sourceMethod === pm.name || tx.destinationMethod === pm.name
       )
 
-      let balance = pm.initialAmount || 0
+      let balance = 0
       pmTxs.forEach((tx) => {
         if (tx.type === "income" && tx.paymentMethod === pm.name) {
           balance += tx.amount
@@ -457,6 +457,12 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
           if (tx.destinationMethod === pm.name) balance += tx.amount
         }
       })
+
+      // Fallback to pm.initialAmount if no initial transaction was found for this payment method
+      const hasInitialTx = pmTxs.some((tx) => tx.title === `${pm.name} Initial Balance`)
+      if (!hasInitialTx) {
+        balance += pm.initialAmount || 0
+      }
 
       return {
         _id: pm._id,
