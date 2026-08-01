@@ -12,7 +12,13 @@ import { transactionService, DashboardSummaryData, TransactionItem } from "@/ser
 import { AddTransactionModal } from "@/components/transactions/AddTransactionModal"
 import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal"
 import { toast } from "sonner"
-import { formatCurrency } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 export function DashboardPage() {
   const { mongoUser, firebaseUser } = useAuth()
@@ -47,6 +53,8 @@ export function DashboardPage() {
     setAddType(type)
     setIsAddOpen(true)
   }
+
+  const [isPMBreakdownOpen, setIsPMBreakdownOpen] = useState(false)
 
   return (
     <div className="space-y-8 animate-in fade-in-50 slide-in-up">
@@ -133,8 +141,9 @@ export function DashboardPage() {
           value={formatCurrency(summary?.totalBalance || 0)}
           icon={Wallet}
           trend="up"
-          trendValue="+8.4%"
+          trendValue="Click for breakdown"
           description="net balance"
+          onClick={() => setIsPMBreakdownOpen(true)}
         />
         <StatCard
           title="Monthly Income"
@@ -248,6 +257,53 @@ export function DashboardPage() {
         onOpenChange={setIsOpen => setIsDetailsOpen(setIsOpen)}
         transaction={selectedTx}
       />
+
+      {/* Payment Method Balances Modal */}
+      <Dialog open={isPMBreakdownOpen} onOpenChange={setIsPMBreakdownOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-primary">
+              <Wallet className="h-5 w-5" /> Account & Payment Method Balances
+            </DialogTitle>
+            <DialogDescription>
+              Individual breakdown of current balances across all your registered payment methods.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-3">
+            {summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 ? (
+              summary.paymentMethodBreakdown.map((pm) => (
+                <div
+                  key={pm._id}
+                  className="flex items-center justify-between p-3.5 rounded-xl border bg-muted/20 hover:bg-muted/40 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                      {pm.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{pm.name}</p>
+                      <p className="text-xs text-muted-foreground">{pm.type}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold text-sm ${pm.balance >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                      {formatCurrency(pm.balance)}
+                    </p>
+                    {pm.initialAmount > 0 && (
+                      <p className="text-[10px] text-muted-foreground">Initial: {formatCurrency(pm.initialAmount)}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-sm text-muted-foreground py-6">
+                No payment methods found. Add one under Settings → Payment Methods.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

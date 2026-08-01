@@ -440,6 +440,33 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       return { day: dayName, date: dateStr, amount: dayAmount }
     })
 
+    const paymentMethods = await PaymentMethod.find({ userId })
+    const paymentMethodBreakdown = paymentMethods.map((pm) => {
+      const pmTxs = transactions.filter(
+        (tx) => tx.paymentMethod === pm.name || tx.sourceMethod === pm.name || tx.destinationMethod === pm.name
+      )
+
+      let balance = pm.initialAmount || 0
+      pmTxs.forEach((tx) => {
+        if (tx.type === "income" && tx.paymentMethod === pm.name) {
+          balance += tx.amount
+        } else if (tx.type === "expense" && tx.paymentMethod === pm.name) {
+          balance -= tx.amount
+        } else if (tx.type === "transfer") {
+          if (tx.sourceMethod === pm.name) balance -= tx.amount
+          if (tx.destinationMethod === pm.name) balance += tx.amount
+        }
+      })
+
+      return {
+        _id: pm._id,
+        name: pm.name,
+        type: pm.type,
+        initialAmount: pm.initialAmount || 0,
+        balance,
+      }
+    })
+
     return res.status(200).json({
       success: true,
       summary: {
@@ -452,6 +479,7 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
         topCategories,
         recentTransactions,
         weeklyTrend,
+        paymentMethodBreakdown,
       },
     })
   } catch (error: any) {

@@ -267,11 +267,7 @@ export function AddTransactionModal({
               type="button"
               onClick={() => {
                 setValue("type", "income")
-                if (customIncomeCategories.length > 0) {
-                  setValue("category", customIncomeCategories[0].name)
-                } else {
-                  setValue("category", "")
-                }
+                setValue("category", "Income")
               }}
               className={`flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all ${
                 selectedType === "income" ? "bg-card text-emerald-500 shadow-sm" : "text-muted-foreground hover:text-foreground"
@@ -311,76 +307,11 @@ export function AddTransactionModal({
               {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
             </div>
 
-            {/* Category / Income Source Selection */}
+            {/* Category Selection */}
             {selectedType === "income" ? (
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Source of Income</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-xs text-primary px-2"
-                    onClick={() => setShowAddSource(!showAddSource)}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> New Source
-                  </Button>
-                </div>
-
-                {showAddSource ? (
-                  <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
-                    <Input
-                      placeholder="Source Name (e.g. Salary, Client X)"
-                      value={newSourceName}
-                      onChange={(e) => setNewSourceName(e.target.value)}
-                    />
-                    <CurrencyInput
-                      placeholder="Initial Amount (₹)"
-                      value={newSourceInitialAmount}
-                      onChange={(e) => setNewSourceInitialAmount(parseFloat(e.target.value) || 0)}
-                    />
-                    <div className="flex justify-end gap-2 pt-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => setShowAddSource(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="h-7 text-xs"
-                        disabled={isCreatingSource}
-                        onClick={handleCreateIncomeSource}
-                      >
-                        {isCreatingSource ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null} Save Source
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Select value={selectedCategory} onValueChange={(val) => setValue("category", val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select income source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {customIncomeCategories.length === 0 ? (
-                        <SelectItem value="none" disabled>
-                          No sources yet — click + New Source
-                        </SelectItem>
-                      ) : (
-                        customIncomeCategories.map((cat) => (
-                          <SelectItem key={cat._id || cat.name} value={cat.name}>
-                            {cat.name} {cat.initialAmount ? `(Initial: ₹${cat.initialAmount})` : ""}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                )}
-                {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
+                <Label>Category</Label>
+                <Input value="Income" disabled />
               </div>
             ) : selectedType === "expense" ? (
               <div className="space-y-2">

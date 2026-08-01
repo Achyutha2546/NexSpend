@@ -53,6 +53,13 @@ export interface DashboardSummaryData {
   topCategories: Array<{ category: string; amount: number }>
   recentTransactions: TransactionItem[]
   weeklyTrend: Array<{ name: string; date: string; amount: number }>
+  paymentMethodBreakdown?: Array<{
+    _id: string
+    name: string
+    type: string
+    initialAmount: number
+    balance: number
+  }>
   lastUpdated: string
 }
 

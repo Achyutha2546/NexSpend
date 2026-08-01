@@ -10,6 +10,7 @@ interface StatCardProps {
   trend?: "up" | "down" | "neutral"
   trendValue?: string
   className?: string
+  onClick?: () => void
 }
 
 export function StatCard({
@@ -20,9 +21,10 @@ export function StatCard({
   trend,
   trendValue,
   className,
+  onClick,
 }: StatCardProps) {
   return (
-    <Card className={cn("overflow-hidden transition-all hover:shadow-md", className)}>
+    <Card onClick={onClick} className={cn("overflow-hidden transition-all hover:shadow-md", onClick && "cursor-pointer hover:border-primary/50", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
