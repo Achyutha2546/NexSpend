@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { GuestRoute } from "./components/auth/GuestRoute"
@@ -39,7 +39,7 @@ function App() {
       <Toaster position="top-right" richColors />
       <PWAInstallBanner />
       <WelcomeModal />
-      <BrowserRouter>
+      <HashRouter>
         <KeyboardShortcuts />
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -78,7 +78,7 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </AuthProvider>
   )
 }
