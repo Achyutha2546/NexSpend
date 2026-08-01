@@ -22,8 +22,22 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:1234567890abcdef",
 }
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
-export const auth = getAuth(app)
+let app: any = null
+let authInstance: any = null
+
+try {
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
+  authInstance = getAuth(app)
+} catch (err) {
+  console.warn("Firebase initialization warning (using mock/fallback mode):", err)
+  // Graceful fallback for Auth
+  authInstance = {
+    currentUser: null,
+    onAuthStateChanged: (_cb: any) => () => {},
+  } as any
+}
+
+export const auth = authInstance
 
 export const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({ prompt: 'select_account' })
