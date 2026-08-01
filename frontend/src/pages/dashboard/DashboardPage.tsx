@@ -136,11 +136,12 @@ export function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Current Balance"
           value={formatCurrency(summary?.totalBalance || 0)}
           icon={Wallet}
+          gradient="indigo"
           trend="up"
           trendValue="Click for breakdown"
           description="net balance"
@@ -150,6 +151,7 @@ export function DashboardPage() {
           title="Monthly Income"
           value={formatCurrency(summary?.monthlyIncome || 0)}
           icon={DollarSign}
+          gradient="emerald"
           trend="up"
           trendValue="+5.2%"
           description="total earned"
@@ -158,14 +160,16 @@ export function DashboardPage() {
           title="Monthly Expenses"
           value={formatCurrency(summary?.monthlyExpenses || 0)}
           icon={CreditCard}
+          gradient="purple"
           trend="down"
           trendValue="-1.8%"
           description="total spent"
         />
         <StatCard
-          title="Financial Health Score"
+          title="Health Score"
           value={`${summary?.financialHealthScore ?? 0}/100`}
           icon={TrendingUp}
+          gradient="cyan"
           trend="up"
           trendValue="Based on Cash Flow"
           description="based on cashflow"

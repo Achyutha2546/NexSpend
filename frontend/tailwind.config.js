@@ -18,9 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
-        display: ["Outfit", "ui-sans-serif", "system-ui"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+        sans: ["Inter", "Manrope", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Manrope", "Inter", "ui-sans-serif", "system-ui"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -31,6 +31,7 @@ module.exports = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "#4F46E5",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -56,16 +57,42 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Premium Palette tokens
+        indigoBrand: {
+          50: '#EEF2FF',
+          100: '#E0E7FF',
+          500: '#6366F1',
+          600: '#4F46E5',
+          700: '#4338CA',
+        },
+        purpleBrand: {
+          50: '#F5F3FF',
+          100: '#EDE9FE',
+          500: '#8B5CF6',
+          600: '#7C3AED',
+        },
+        cyanBrand: {
+          50: '#ECFEFF',
+          500: '#06B6D4',
+          600: '#0891B2',
+        },
+        emeraldBrand: {
+          50: '#ECFDF5',
+          500: '#10B981',
+          600: '#059669',
+        },
       },
       borderRadius: {
+        '2xl': '1.25rem',   /* 20px Card Radius */
+        'xl': '1rem',
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'premium': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
-        'premium-hover': '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08)',
-        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.05)',
+        'soft': '0 4px 20px -2px rgba(99, 102, 241, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+        'soft-hover': '0 12px 30px -4px rgba(99, 102, 241, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.04)',
+        'glass': '0 8px 32px 0 rgba(99, 102, 241, 0.06)',
       },
       keyframes: {
         "accordion-down": {
@@ -81,7 +108,7 @@ module.exports = {
           "100%": { opacity: "1" },
         },
         "slide-in-up": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
