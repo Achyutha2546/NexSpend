@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { settingsService, UserPreferencesData, NotificationPreferencesData, UserSessionItem } from "@/services/settingsService"
+import { transactionService } from "@/services/transactionService"
 import { SyncStatusWidget } from "@/components/pwa/SyncStatusWidget"
 import { useAuth } from "@/context/AuthContext"
 import { PageLoader } from "@/components/feedback/PageLoader"
@@ -63,16 +64,29 @@ export function SettingsPage() {
     async function loadAll() {
       setLoading(true)
       try {
-        const [p, n, s, pm] = await Promise.all([
+        const [p, n, s, pm, dashSummary] = await Promise.all([
           settingsService.getPreferences(),
           settingsService.getNotificationPreferences(),
           settingsService.getSessions(),
           paymentMethodService.getPaymentMethods(),
+          transactionService.getDashboardSummary().catch(() => null),
         ])
         setPrefs(p)
         setNotifs(n)
         setSessions(s)
-        setPaymentMethods(pm)
+        
+        if (dashSummary?.paymentMethodBreakdown) {
+          const mappedPMs = pm.map((method: PaymentMethodItem) => {
+            const breakdown = dashSummary.paymentMethodBreakdown?.find((b: any) => b.name === method.name)
+            return {
+              ...method,
+              balance: breakdown ? breakdown.balance : method.initialAmount || 0,
+            }
+          })
+          setPaymentMethods(mappedPMs as any)
+        } else {
+          setPaymentMethods(pm)
+        }
       } catch (error) {
         toast.error("Failed to load settings")
       } finally {
@@ -365,16 +379,14 @@ export function SettingsPage() {
               }}>
                 Reset All Balances
               </Button>
-              {paymentMethods.map((pm) => (
+              {paymentMethods.map((pm: any) => (
                 <div key={pm._id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
                   <div className="space-y-1">
-                    <p className="font-medium">
-                      {pm.name} ({pm.type})
-                      {pm.initialAmount !== undefined && (
-                        <span className="ml-2 text-sm font-normal text-muted-foreground">
-                          ({formatCurrency(pm.initialAmount, prefs?.currencySymbol || '₹')})
-                        </span>
-                      )}
+                    <p className="font-semibold text-sm">
+                      {pm.name} <span className="text-xs font-normal text-muted-foreground">({pm.type})</span>
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Current Balance: <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(pm.balance !== undefined ? pm.balance : pm.initialAmount || 0, prefs?.currencySymbol || '₹')}</span>
                     </p>
                   </div>
                   <div className="flex gap-2">
