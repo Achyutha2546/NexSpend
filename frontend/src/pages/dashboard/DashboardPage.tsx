@@ -295,9 +295,6 @@ export function DashboardPage() {
                     <p className={`font-bold text-sm ${pm.balance >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                       {formatCurrency(pm.balance)}
                     </p>
-                    {pm.initialAmount > 0 && (
-                      <p className="text-[10px] text-muted-foreground">Initial: {formatCurrency(pm.initialAmount)}</p>
-                    )}
                   </div>
                 </div>
               ))
