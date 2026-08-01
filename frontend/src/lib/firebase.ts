@@ -14,12 +14,12 @@ import {
 } from "firebase/auth"
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDemoKeyForNexSpendDevelopmentOnly12345",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "nexspend-app.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "nexspend-app",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "nexspend-app.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:1234567890abcdef",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAGT29WtMFwDMpkIQA-Ye_WWVHpGlKDFU0",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "nexspend-f7b31.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "nexspend-f7b31",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "nexspend-f7b31.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "701660143576",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:701660143576:web:a2404417187c0dd3889cad",
 }
 
 let app: any = null
