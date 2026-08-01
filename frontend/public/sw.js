@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexspend-v2"
+const CACHE_NAME = "nexspend-v3"
 const STATIC_ASSETS = ["/", "/index.html", "/manifest.json"]
 
 self.addEventListener("install", (event) => {
@@ -45,12 +45,19 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  // NetworkFirst / Fallback strategy for Navigation (HTML requests)
+  // Navigation (HTML page loading)
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match("/index.html") || caches.match("/")
-      })
+      fetch(event.request)
+        .then((response) => {
+          if (!response || response.status !== 200) {
+            return caches.match("/index.html") || caches.match("/") || response
+          }
+          return response
+        })
+        .catch(() => {
+          return caches.match("/index.html") || caches.match("/")
+        })
     )
     return
   }
