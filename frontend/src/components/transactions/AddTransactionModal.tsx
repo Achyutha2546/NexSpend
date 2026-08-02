@@ -78,8 +78,23 @@ export function AddTransactionModal({
 
   const loadData = async () => {
     try {
-      const pms = await paymentMethodService.getPaymentMethods()
-      setPaymentMethods(pms)
+      const [pms, dashSummary] = await Promise.all([
+        paymentMethodService.getPaymentMethods(),
+        transactionService.getDashboardSummary().catch(() => null),
+      ])
+
+      if (dashSummary?.paymentMethodBreakdown) {
+        const mapped = pms.map((pm) => {
+          const breakdown = dashSummary.paymentMethodBreakdown?.find((b) => b.name === pm.name)
+          return {
+            ...pm,
+            balance: breakdown ? breakdown.balance : pm.initialAmount || 0,
+          }
+        })
+        setPaymentMethods(mapped as any)
+      } else {
+        setPaymentMethods(pms)
+      }
     } catch {
       // Fallback
     }
@@ -482,9 +497,9 @@ export function AddTransactionModal({
                       ) : (
                         paymentMethods
                           .filter((pm) => pm.name !== selectedDestinationMethod)
-                          .map((pm) => (
+                          .map((pm: any) => (
                             <SelectItem key={`src-${pm._id || pm.name}`} value={pm.name}>
-                              {pm.name}
+                              {pm.name} {pm.balance !== undefined ? `(Balance: ₹${pm.balance})` : ""}
                             </SelectItem>
                           ))
                       )}
@@ -514,9 +529,9 @@ export function AddTransactionModal({
                       ) : (
                         paymentMethods
                           .filter((pm) => pm.name !== selectedSourceMethod)
-                          .map((pm) => (
+                          .map((pm: any) => (
                             <SelectItem key={`dst-${pm._id || pm.name}`} value={pm.name}>
-                              {pm.name}
+                              {pm.name} {pm.balance !== undefined ? `(Balance: ₹${pm.balance})` : ""}
                             </SelectItem>
                           ))
                       )}
@@ -537,9 +552,9 @@ export function AddTransactionModal({
                           No payment methods — click + New Payment Method
                         </SelectItem>
                       ) : (
-                        paymentMethods.map((pm) => (
+                        paymentMethods.map((pm: any) => (
                           <SelectItem key={pm._id || pm.name} value={pm.name}>
-                            {pm.name} {pm.initialAmount ? `(Initial: ₹${pm.initialAmount})` : ""}
+                            {pm.name} {pm.balance !== undefined ? `(Balance: ₹${pm.balance})` : ""}
                           </SelectItem>
                         ))
                       )}
