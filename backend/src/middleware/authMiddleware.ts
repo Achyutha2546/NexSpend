@@ -14,24 +14,33 @@ export const verifyAuth = async (req: Request, res: Response, next: NextFunction
             req.user = decodedToken
             return next()
           } catch (tokenErr) {
-            // Fallback decode for development/test tokens
-            const payloadBase64 = token.split(".")[1]
-            if (payloadBase64) {
-              const decodedJson = JSON.parse(Buffer.from(payloadBase64, "base64").toString("utf-8"))
+            // Token verification fallback (e.g. if service account credentials missing or key mismatch)
+          }
+        }
+
+        // Parse token payload safely without adminAuth
+        try {
+          const payloadBase64 = token.split(".")[1]
+          if (payloadBase64) {
+            const decodedJson = JSON.parse(Buffer.from(payloadBase64, "base64").toString("utf-8"))
+            const uid = decodedJson.user_id || decodedJson.sub || decodedJson.uid
+            if (uid) {
               req.user = {
-                uid: decodedJson.user_id || decodedJson.sub || decodedJson.uid || "demo-uid",
-                email: decodedJson.email || "demo@nexspend.com",
-                name: decodedJson.name || decodedJson.email?.split("@")[0] || "Demo User",
+                uid,
+                email: decodedJson.email || "",
+                name: decodedJson.name || decodedJson.email?.split("@")[0] || "User",
                 picture: decodedJson.picture || "",
               } as any
               return next()
             }
           }
+        } catch (parseErr) {
+          // Continue to fallback
         }
       }
     }
 
-    // Default development user fallback if unauthenticated
+    // Default development user fallback if no token provided
     req.user = {
       uid: "demo-user-123",
       email: "demo@nexspend.com",
