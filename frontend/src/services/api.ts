@@ -1,8 +1,17 @@
 import axios from "axios"
 import { auth } from "@/lib/firebase"
 
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL
+  if (envUrl) return envUrl
+  if (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")) {
+    return "https://nexspend-backend.onrender.com/api"
+  }
+  return "http://localhost:5000/api"
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
