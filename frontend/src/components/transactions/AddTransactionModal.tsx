@@ -21,7 +21,7 @@ import { transactionService, TransactionItem } from "@/services/transactionServi
 import { paymentMethodService, PaymentMethodItem } from "@/services/paymentMethodService"
 import { categoryDetectionService } from "@/services/categoryDetectionService"
 import { toast } from "sonner"
-import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus, Sparkles, FileText } from "lucide-react"
+import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus, Sparkles, FileText, Camera } from "lucide-react"
 
 const transactionSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -251,6 +251,41 @@ export function AddTransactionModal({
     }
   }
 
+  const handleUploadReceiptImage = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file (PNG, JPG, Screenshot)")
+      return
+    }
+
+    setIsScanningReceipt(true)
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const base64Data = e.target?.result as string
+      try {
+        const extracted = await categoryDetectionService.scanReceipt(file.name + " " + base64Data)
+        if (extracted) {
+          if (extracted.title) setValue("title", extracted.title)
+          if (extracted.amount) setValue("amount", Number(extracted.amount))
+          if (extracted.type) setValue("type", extracted.type)
+          if (extracted.category) setValue("category", extracted.category)
+          if (extracted.merchant) setValue("merchant", extracted.merchant)
+          if (extracted.paymentMethod) {
+            const matchedPM = paymentMethods.find((pm) => pm.name.toLowerCase().includes(extracted.paymentMethod.toLowerCase()))
+            if (matchedPM) setValue("paymentMethod", matchedPM.name)
+          }
+          toast.success("✨ Receipt image scanned and fields auto-filled!")
+        } else {
+          toast.error("Could not read receipt image.")
+        }
+      } catch {
+        toast.error("Failed to scan receipt image.")
+      } finally {
+        setIsScanningReceipt(false)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleCreatePaymentMethod = async () => {
     if (!newPMName.trim()) {
       toast.error("Payment method name is required")
@@ -351,6 +386,30 @@ export function AddTransactionModal({
                 {isScanningReceipt ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <FileText className="h-3.5 w-3.5 mr-1" />}
                 Auto Fill
               </Button>
+              <label className="cursor-pointer">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleUploadReceiptImage(file)
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs shrink-0 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"
+                  disabled={isScanningReceipt}
+                  onClick={(e) => {
+                    const fileInput = e.currentTarget.previousElementSibling as HTMLInputElement
+                    fileInput?.click()
+                  }}
+                >
+                  <Camera className="h-3.5 w-3.5 mr-1" /> Upload Image
+                </Button>
+              </label>
             </div>
           </div>
 
