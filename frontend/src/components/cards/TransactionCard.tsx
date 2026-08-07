@@ -59,11 +59,11 @@ export function TransactionCard({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1 shrink-0">
+        <div className="flex flex-col items-end gap-1 shrink-0 max-w-[45%]">
           <div className={cn(
-            "text-sm font-extrabold sm:text-base tracking-tight",
+            "text-sm font-extrabold sm:text-base tracking-tight truncate max-w-full",
             isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-slate-800 dark:text-slate-100"
-          )}>
+          )} title={`${isIncome ? "+" : "-"}${formatCurrency(Math.abs(amount))}`}>
             {isIncome ? "+" : "-"}{formatCurrency(Math.abs(amount))}
           </div>
           <div className="flex items-center gap-1.5">

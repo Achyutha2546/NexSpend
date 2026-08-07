@@ -151,6 +151,13 @@ export const createTransaction = async (req: Request, res: Response) => {
     const txAmount = Math.abs(Number(amount || 0))
     const txType = type || "expense"
 
+    if (txAmount > 500000) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum limit per transaction is ₹5,00,000 (5 Lakhs).",
+      })
+    }
+
     // Prevent negative balance: check if user has sufficient funds for expenses or transfers
     if (txType === "expense" || txType === "transfer") {
       try {

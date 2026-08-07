@@ -97,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const registerWithEmail = async (email: string, password: string, name: string) => {
     setLoading(true)
     try {
+      await setPersistence(auth, browserLocalPersistence)
       await createUserWithEmailAndPassword(auth, email, password)
       if (auth.currentUser) {
         await updateFirebaseProfile(auth.currentUser, { displayName: name })
@@ -118,6 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     setLoading(true)
     try {
+      await setPersistence(auth, browserLocalPersistence)
       const userCredential = await signInWithPopup(auth, googleProvider)
       const user = userCredential.user
       const profile = await authService.syncUser({

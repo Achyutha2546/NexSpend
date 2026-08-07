@@ -25,7 +25,10 @@ import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus, Sparkles }
 
 const transactionSchema = z.object({
   title: z.string().min(2, "Title is required"),
-  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  amount: z.coerce
+    .number()
+    .positive("Amount must be greater than 0")
+    .max(500000, "Maximum limit per transaction is ₹5,00,000 (5 Lakhs)"),
   type: z.enum(["income", "expense", "transfer"]),
   category: z.string().min(1, "Category is required"),
   paymentMethod: z.string().min(1, "Payment method / source is required"),
