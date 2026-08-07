@@ -183,7 +183,13 @@ export const scanReceipt = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Receipt text or image is required" })
     }
 
-    const textToAnalyze = receiptText || ""
+    let textToAnalyze = receiptText || ""
+    if (imageBase64 && imageBase64.includes("base64,")) {
+      try {
+        const rawString = Buffer.from(imageBase64.split("base64,")[1], "base64").toString("utf-8")
+        textToAnalyze += " " + rawString
+      } catch {}
+    }
 
     let amount: number | null = null
     let merchant = ""

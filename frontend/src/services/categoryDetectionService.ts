@@ -25,9 +25,9 @@ export const categoryDetectionService = {
     }
   },
 
-  async scanReceipt(receiptText: string): Promise<any> {
+  async scanReceipt(receiptText?: string, imageBase64?: string): Promise<any> {
     try {
-      const response = await api.post("/ai/scan-receipt", { receiptText })
+      const response = await api.post("/ai/scan-receipt", { receiptText, imageBase64 })
       return response.data?.extracted || null
     } catch {
       return null

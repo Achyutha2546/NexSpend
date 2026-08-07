@@ -262,7 +262,7 @@ export function AddTransactionModal({
     reader.onload = async (e) => {
       const base64Data = e.target?.result as string
       try {
-        const extracted = await categoryDetectionService.scanReceipt(file.name + " " + base64Data)
+        const extracted = await categoryDetectionService.scanReceipt(file.name, base64Data)
         if (extracted) {
           if (extracted.title) setValue("title", extracted.title)
           if (extracted.amount) setValue("amount", Number(extracted.amount))
