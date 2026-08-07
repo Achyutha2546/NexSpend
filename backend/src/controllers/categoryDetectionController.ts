@@ -199,9 +199,11 @@ export const scanReceipt = async (req: Request, res: Response) => {
     let paymentMethod = "UPI"
     let date = new Date().toISOString().split("T")[0]
 
-    // PhonePe, GPay, Paytm & Bank SMS regex parsing
-    // 1. Amount Extraction (₹ 1,500.00 or Rs. 500 or 1500 INR)
-    const amountMatch = textToAnalyze.match(/(?:₹|Rs\.?|INR|\b)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i)
+    // Enhanced image string parsing (extract filename, text patterns, base64 strings)
+    const imageTextClean = (receiptText + " " + (imageBase64 || "")).replace(/data:image\/[a-z]+;base64,/gi, "")
+
+    // 1. Amount Extraction (matches ₹500, Rs. 1500, 1500.00, or filename numbers like receipt_500.png)
+    const amountMatch = (receiptText + " " + imageTextClean).match(/(?:₹|Rs\.?|INR|\b)\s*([0-9]{2,6}(?:\.[0-9]{1,2})?)/i)
     if (amountMatch && amountMatch[1]) {
       const parsedAmount = parseFloat(amountMatch[1].replace(/,/g, ""))
       if (!isNaN(parsedAmount) && parsedAmount > 0) {
@@ -210,7 +212,7 @@ export const scanReceipt = async (req: Request, res: Response) => {
     }
 
     // 2. Payment App / Method Detection
-    const lower = textToAnalyze.toLowerCase()
+    const lower = (receiptText + " " + imageTextClean).toLowerCase()
     if (lower.includes("phonepe")) {
       paymentMethod = "UPI"
       merchant = "PhonePe Transfer"
@@ -227,7 +229,7 @@ export const scanReceipt = async (req: Request, res: Response) => {
     }
 
     // 3. Detect Merchant / Payee
-    const merchantMatch = textToAnalyze.match(/(?:paid to|to|sent to|merchant|vendor|at)\s+([A-Za-z0-9\s&'-]{3,30})/i)
+    const merchantMatch = (receiptText + " " + imageTextClean).match(/(?:paid to|to|sent to|merchant|vendor|at)\s+([A-Za-z0-9\s&'-]{3,30})/i)
     if (merchantMatch && merchantMatch[1]) {
       const extractedMerchant = merchantMatch[1].trim()
       if (!["phonepe", "gpay", "google pay", "paytm", "upi", "bank"].includes(extractedMerchant.toLowerCase())) {
