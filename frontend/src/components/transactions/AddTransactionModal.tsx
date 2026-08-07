@@ -21,7 +21,7 @@ import { transactionService, TransactionItem } from "@/services/transactionServi
 import { paymentMethodService, PaymentMethodItem } from "@/services/paymentMethodService"
 import { categoryDetectionService } from "@/services/categoryDetectionService"
 import { toast } from "sonner"
-import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus, Sparkles } from "lucide-react"
+import { Loader2, ArrowDownRight, ArrowUpRight, ArrowLeftRight, Plus, Sparkles, FileText } from "lucide-react"
 
 const transactionSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -222,6 +222,35 @@ export function AddTransactionModal({
     return () => clearTimeout(timer)
   }, [titleInput, merchantInput, open, selectedType, setValue])
 
+  const [isScanningReceipt, setIsScanningReceipt] = useState(false)
+  const [receiptRawInput, setReceiptRawInput] = useState("")
+
+  const handleScanReceiptText = async (text: string) => {
+    if (!text.trim()) return
+    setIsScanningReceipt(true)
+    try {
+      const extracted = await categoryDetectionService.scanReceipt(text)
+      if (extracted) {
+        if (extracted.title) setValue("title", extracted.title)
+        if (extracted.amount) setValue("amount", Number(extracted.amount))
+        if (extracted.type) setValue("type", extracted.type)
+        if (extracted.category) setValue("category", extracted.category)
+        if (extracted.merchant) setValue("merchant", extracted.merchant)
+        if (extracted.paymentMethod) {
+          const matchedPM = paymentMethods.find((pm) => pm.name.toLowerCase().includes(extracted.paymentMethod.toLowerCase()))
+          if (matchedPM) setValue("paymentMethod", matchedPM.name)
+        }
+        toast.success("✨ Receipt details auto-filled!")
+      } else {
+        toast.error("Could not extract details from receipt text.")
+      }
+    } catch {
+      toast.error("Failed to scan receipt.")
+    } finally {
+      setIsScanningReceipt(false)
+    }
+  }
+
   const handleCreatePaymentMethod = async () => {
     if (!newPMName.trim()) {
       toast.error("Payment method name is required")
@@ -297,6 +326,34 @@ export function AddTransactionModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 py-2">
+          {/* Smart Scan PhonePe / GPay / Paytm Receipt Card */}
+          <div className="p-3.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                <Sparkles className="h-3.5 w-3.5 animate-pulse" /> Auto-Fill from PhonePe / GPay / Paytm Receipt
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium">Smart AI OCR</span>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Paste PhonePe / GPay receipt text or SMS..."
+                value={receiptRawInput}
+                onChange={(e) => setReceiptRawInput(e.target.value)}
+                className="h-8 text-xs bg-background"
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white"
+                disabled={isScanningReceipt || !receiptRawInput.trim()}
+                onClick={() => handleScanReceiptText(receiptRawInput)}
+              >
+                {isScanningReceipt ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <FileText className="h-3.5 w-3.5 mr-1" />}
+                Auto Fill
+              </Button>
+            </div>
+          </div>
+
           {/* Type Toggle */}
           <div className="grid grid-cols-3 gap-2 p-1 bg-muted rounded-lg">
             <button

@@ -15,6 +15,7 @@ import { verifyAuth } from "../middleware/authMiddleware"
 
 import {
   detectCategory,
+  scanReceipt,
   saveMerchantMapping,
   getMerchantMappings,
   clearMerchantMappings,
@@ -38,8 +39,9 @@ router.delete("/history", deleteAIHistory)
 router.post("/weekly-review", generateWeeklyReview)
 router.post("/monthly-review", generateMonthlyReview)
 
-// Smart Category Auto-Detection routes
+// Smart Category Auto-Detection & OCR Receipt Scan routes
 router.post("/detect-category", detectCategory)
+router.post("/scan-receipt", scanReceipt)
 router.post("/merchant-mapping", saveMerchantMapping)
 router.get("/merchant-mappings", getMerchantMappings)
 router.delete("/merchant-mappings", clearMerchantMappings)

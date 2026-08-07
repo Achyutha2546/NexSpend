@@ -25,6 +25,15 @@ export const categoryDetectionService = {
     }
   },
 
+  async scanReceipt(receiptText: string): Promise<any> {
+    try {
+      const response = await api.post("/ai/scan-receipt", { receiptText })
+      return response.data?.extracted || null
+    } catch {
+      return null
+    }
+  },
+
   async saveMapping(merchant: string, categoryId: string): Promise<void> {
     try {
       await api.post("/ai/merchant-mapping", { merchant, categoryId })
